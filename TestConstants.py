@@ -2,7 +2,7 @@
 
 class venueInfo:
     venueName = 'Loblaws'
-    venueAddress_01 = '2065A Robertson Rd'
+    venueAddress = '2065A Robertson Rd'
 
 class BestTimeInfo:
     Api_Key_Private = 'pri_26aedd82b0a54ffda5e024a9b3a77827'

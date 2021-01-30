@@ -5,22 +5,24 @@ import json
 import TestConstants as con
 import venue as v
 
-def liveData():
-    # Following URL gives a POST for ALL the JSON on the live forecast
-    url = "https://besttime.app/api/v1/forecasts/live"
 
-    # Parameters used to communicate with API
-    params = {
-    'api_key_private': con.BestTimeInfo.Api_Key_Private,
-    'venue_name': con.venueInfo.venueName,
-    'venue_address': con.venueInfo.venueAddress
-    }
+# Following URL gives a POST for ALL the JSON on the live forecast
+url = "https://besttime.app/api/v1/forecasts/live"
 
-    response = requests.request("POST", url, params=params)
-    data = json.loads(response.text)
+# Parameters used to communicate with API
+params = {
+'api_key_private': con.BestTimeInfo.Api_Key_Private,
+'venue_name': con.venueInfo.venueName,
+'venue_address': con.venueInfo.venueAddress
+}
 
-    venueInfo = v.venueLiveInfo(data)
-    return venueInfo
+response = requests.request("POST", url, params=params)
+data = json.loads(response.text)
+
+venueInfo = v.venueInfo()
+venueInfo.buffer(data)
+status = venueInfo.currentVenueStatus
+print(status)
 
 
 
