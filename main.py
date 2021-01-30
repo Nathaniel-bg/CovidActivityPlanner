@@ -10,9 +10,4 @@ import TestConstants as con
 
 # Insert GUI here
 
-varOne = con.one
-
-
-
-print(varOne)
 
