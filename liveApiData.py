@@ -21,10 +21,9 @@ def obtainLiveData(venue):
 
     print(data)
 
-    if not(data['status'] == 'Error'):
+    if(data['status'] != 'Error'):
         # venueInfo = v.venueInfo()
         venue.addLive(data)
-
 
 
 
