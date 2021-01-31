@@ -17,9 +17,9 @@ class venueInfo:
     def addHistorical(self, historyData):
         self.historyData = historyData
 
-    def basicInfo(self, name, address):
+    def basicInfo(self, name, city):
         self.name = name
-        self.address = address
+        self.city = city
 
     def getRawDayData(self, day):
         if (day == 'Monday'):

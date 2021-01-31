@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
 # from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # from pandas import DataFrame
-
+import venue as v
 
 # /////// GUI SETUP ////////
 # create window
@@ -27,7 +27,7 @@ label1.config(font=('helvetica', 40))
 canvas1.create_window(400, 50, window=label1)
 
 # enter address label + entry box
-label2 = tk.Label(root, text='Enter your current address:')
+label2 = tk.Label(root, text='Enter your city Name:')
 label2.config(font=('helvetica', 12))
 canvas1.create_window(100, 125, window=label2)
 entry1 = tk.Entry(root)
@@ -43,10 +43,16 @@ canvas1.create_window(500, 160, window=entry2, width=550)
 
 # function that is executed once the 'Get Safest Visiting Times' button is clicked
 def buttonClicked():
+
     venue_name = entry2.get()
+    city_name = entry1.get()
+    base = v.venueInfo()
+    base.basicInfo(venue_name, city_name)
 
     print('clicked on button')
-    print(venue_name)
+    print(base.name)
+    print(base.city)
+
 
     # /////// Venue History ////////
     url = "https://besttime.app/api/v1/forecasts"
