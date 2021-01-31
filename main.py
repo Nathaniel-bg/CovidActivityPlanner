@@ -15,6 +15,8 @@ import venue as v
 from historyApiData import obtainHistoryData
 from liveApiData import obtainLiveData
 from venue import venueInfo
+from collections import deque
+import numpy
 
 
 # /////// GUI SETUP ////////
@@ -26,7 +28,7 @@ canvas1.pack()
 # title
 label1 = tk.Label(root, text='Covid Activity Planner')
 label1.config(font=('helvetica', 40))
-canvas1.create_window(500, 50, window=label1)
+canvas1.create_window(400, 50, window=label1)
 
 # select mode radio buttons
 mode = tk.IntVar() # 1 = Go As Soon as Possible and 2 = Go later on
@@ -69,6 +71,7 @@ canvas1.create_window(500, 160, window=entry2, width=550)
 # draw other gui lines and shapes
 canvas1.create_line(15, 100, 1180, 100)
 canvas1.create_line(15, 250, 1180, 250)
+# canvas1.create_line(15, 350, 1180, 350)
 
 d = tk.IntVar() # variable to store radio button day selection
 def dayButtonClicked():
@@ -162,7 +165,6 @@ city_name = ''
 venues = []
 # function that is executed once the 'Get Safest Time' button is clicked
 def buttonClicked():
-
     venue_name = entry2.get()
     city_name = entry1.get()
     base = v.venueInfo()
@@ -186,22 +188,41 @@ def buttonClicked():
     for venue in venues:
         obtainLiveData(venue)
 
-    for venue in venues:
-        print(venue.currentVenueStatus)
+    # for venue in venues:
+    #     print("STATUS")
+    #     print(venue.currentVenueStatus)
 
     # /////// Venue History ////////
     for venue in venues:
         obtainHistoryData(venue)
 
     offset = 0
-    for venue in venues:
-        drawPlot(venue.getRawDayData("Monday"), offset, venue.name, venue.address, 150, 8)
-        offset += 150
+
+    try:
+        for venue in venues:
+            time = 0
+            if(venue.currentVenueTime.split()[2][-2] == 'A'):
+                time = int(venue.currentVenueTime.split()[2][:2])
+            else:
+                time = int(venue.currentVenueTime.split()[2][:2]) + 12
+
+            drawPlot(venue.getRawDayData("Monday"), offset, venue.name, venue.address, venue.currentVenueStatus, time)
+            offset += 150
+    except:
+        pass
 
 guiComponents = []
 def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
     barOffset = 600
+    # graphOffset = graphOffset + 120
     counter = 1
+
+    elems = []
+    for x in range(5):
+        elems.append(crowdValues.pop())
+
+    for x in range(5):
+        crowdValues.insert(0, elems.pop())
 
     # draw venue name
     lb = tk.Label(root, text=venueName)
@@ -219,43 +240,45 @@ def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
     guiComponents.append(lb)
     canvas1.create_window(300, graphOffset + 310, window=lb)
 
-    lb = tk.Label(root, text='live Rating: ' + str(rating), fg = 'red')
-    lb.config(font=('helvetica', 12))
-    canvas1.create_window(625, graphOffset + 280, window=lb)
+    if(rating != None):
+        lb = tk.Label(root, text='live Rating: ' + str(rating), fg = 'blue')
+        lb.config(font=('helvetica', 12))
+        guiComponents.append(lb)
+        canvas1.create_window(625, graphOffset + 280, window=lb)
 
     # draw crowd bar graph
     for value in crowdValues:
 
+        # green and red bars
+        greenVal = int((value/100)*15)
+        redVal = int(15 - greenVal)
+        greenValHex = hex(greenVal)
+        redValHex = hex(redVal)
+        colorString = '#' + greenValHex[-1] + redValHex[-1] + "0"
+
+        rectangle = canvas1.create_rectangle(barOffset, graphOffset+370, barOffset+20, graphOffset+370-value,outline="#000", fill=colorString)
+        guiComponents.append(rectangle)
+
+        lb = tk.Label(root, text=str(counter) + 'h')
+        lb.config(font=('helvetica', 9))
+        guiComponents.append(lb)
+        canvas1.create_window(barOffset+10, graphOffset+390, window=lb)
+
+        # draw blue live data bar
         if (counter == time):
-            rectangle = canvas1.create_rectangle(barOffset, graphOffset + 370, barOffset + 20,
-                                                 graphOffset + 370 - rating, outline="#000", fill="#f00")
-            guiComponents.append(rectangle)
+            if (rating == None):
+                lb = tk.Label(root, text='No Live data', fg = 'blue')
+                lb.config(font=('helvetica', 10))
+                guiComponents.append(lb)
+                canvas1.create_window(625, graphOffset + 280, window=lb)
+            else:
+                rectangle = canvas1.create_rectangle(barOffset, graphOffset + 370, barOffset + 20,
+                                                     graphOffset + 370 - rating, outline="#000", fill="#00f")
+                guiComponents.append(rectangle)
 
-            lb = tk.Label(root, text=str(counter) + 'h')
-            lb.config(font=('helvetica', 9))
-            canvas1.create_window(barOffset + 10, graphOffset + 390, window=lb)
+        barOffset += 25
+        counter += 1
 
-            barOffset += 25
-            counter += 1
-
-        else:
-          
-            greenVal = int((value/100)*15)
-            redVal = int(15 - greenVal)
-            greenValHex = hex(greenVal)
-            redValHex = hex(redVal)
-            colorString = '#' + greenValHex[-1] + redValHex[-1] + "0"
-
-            rectangle = canvas1.create_rectangle(barOffset, graphOffset+370, barOffset+20, graphOffset+370-value,outline="#000", fill=colorString)
-            guiComponents.append(rectangle)
-
-            lb = tk.Label(root, text=str(counter) + 'h')
-            lb.config(font=('helvetica', 9))
-            canvas1.create_window(barOffset+10, graphOffset+390, window=lb)
-
-
-            barOffset += 25
-            counter += 1
 
 def removePlots():
     for conponent in guiComponents:
@@ -263,6 +286,9 @@ def removePlots():
             canvas1.delete(conponent)
         except:
             conponent.destroy()
+
+    global venues
+    venues = []
 
 # /////// Various Tkinter buttons ////////
 # 'Get Safest Times' button
@@ -281,5 +307,4 @@ button1 = tk.Button(text='Set Mode', command=modeButtonClicked, bg='grey', fg='w
 canvas1.create_window(1000, 50, window=button1)
 
 # enable the GUI main loop
-print("got here")
 root.mainloop()
