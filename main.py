@@ -11,7 +11,10 @@ from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
 # from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # from pandas import DataFrame
+
 from functools import partial
+import venue as v
+
 
 # /////// GUI SETUP ////////
 # create window
@@ -51,7 +54,7 @@ modeLabel.config(font=('helvetica', 12))
 canvas1.create_window(870, 85, window=modeLabel)
 
 # enter address label + entry box
-label2 = tk.Label(root, text='Enter your current address:')
+label2 = tk.Label(root, text='Enter your city Name:')
 label2.config(font=('helvetica', 12))
 canvas1.create_window(100, 125, window=label2)
 entry1 = tk.Entry(root)
@@ -157,10 +160,16 @@ def modeButtonClicked():
 
 # function that is executed once the 'Get Safest Time' button is clicked
 def buttonClicked():
+
     venue_name = entry2.get()
+    city_name = entry1.get()
+    base = v.venueInfo()
+    base.basicInfo(venue_name, city_name)
 
     print('clicked on button')
-    print(venue_name)
+    print(base.name)
+    print(base.city)
+
 
     # /////// Venue History ////////
     url = "https://besttime.app/api/v1/forecasts"
@@ -178,15 +187,15 @@ def buttonClicked():
     venueHistory1.addHistorical(data)
     venueHistory1.getRawDayData("Monday")
 
-    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 0, 'Loblaws 1', '200 Earl Grey Dr, Ottawa, ON K2T 1B6')
-    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 150, 'Loblaws 2', 'Wall street, ON K2T 1B6')
-    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 300, 'Loblaws 3', 'Area 51, Ottawa, ON K2T 1B6')
-    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 450, 'Loblaws 4', 'Joe Mama')
+    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 0, 'Loblaws 1', '200 Earl Grey Dr, Ottawa, ON K2T 1B6', 150, 8)
+    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 150, 'Loblaws 2', 'Wall street, ON K2T 1B6', 50, 6)
+    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 300, 'Loblaws 3', 'Area 51, Ottawa, ON K2T 1B6', 100, 13)
+    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 450, 'Loblaws 4', 'Joe Mama', 75, 23)
 
 
 guiComponents = []
 
-def drawPlot(crowdValues, graphOffset, venueName, venueAddress):
+def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
     barOffset = 600
     counter = 1
 
@@ -206,24 +215,43 @@ def drawPlot(crowdValues, graphOffset, venueName, venueAddress):
     guiComponents.append(lb)
     canvas1.create_window(300, graphOffset + 310, window=lb)
 
+    lb = tk.Label(root, text='live Rating: ' + str(rating), fg = 'red')
+    lb.config(font=('helvetica', 12))
+    canvas1.create_window(625, graphOffset + 280, window=lb)
+
     # draw crowd bar graph
     for value in crowdValues:
-        greenVal = int((value/100)*15)
-        redVal = int(15 - greenVal)
-        greenValHex = hex(greenVal)
-        redValHex = hex(redVal)
-        colorString = '#' + greenValHex[-1] + redValHex[-1] + "0"
 
-        rectangle = canvas1.create_rectangle(barOffset, graphOffset+370, barOffset+20, graphOffset+370-value,outline="#000", fill=colorString)
-        guiComponents.append(rectangle)
+        if (counter == time):
+            rectangle = canvas1.create_rectangle(barOffset, graphOffset + 370, barOffset + 20,
+                                                 graphOffset + 370 - rating, outline="#000", fill="#f00")
+            graphs.append(rectangle)
 
-        lb = tk.Label(root, text=str(counter) + 'h')
-        lb.config(font=('helvetica', 9))
-        guiComponents.append(lb)
-        canvas1.create_window(barOffset+10, graphOffset+390, window=lb)
+            lb = tk.Label(root, text=str(counter) + 'h')
+            lb.config(font=('helvetica', 9))
+            canvas1.create_window(barOffset + 10, graphOffset + 390, window=lb)
 
-        barOffset += 25
-        counter += 1
+            barOffset += 25
+            counter += 1
+
+        else:
+          
+            greenVal = int((value/100)*15)
+            redVal = int(15 - greenVal)
+            greenValHex = hex(greenVal)
+            redValHex = hex(redVal)
+            colorString = '#' + greenValHex[-1] + redValHex[-1] + "0"
+
+            rectangle = canvas1.create_rectangle(barOffset, graphOffset+370, barOffset+20, graphOffset+370-value,outline="#000", fill=colorString)
+            graphs.append(rectangle)
+
+            lb = tk.Label(root, text=str(counter) + 'h')
+            lb.config(font=('helvetica', 9))
+            canvas1.create_window(barOffset+10, graphOffset+390, window=lb)
+
+
+            barOffset += 25
+            counter += 1
 
 def removePlots():
     for conponent in guiComponents:
