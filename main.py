@@ -9,17 +9,16 @@ import TestConstants as con
 import tkinter as tk
 from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
-# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-# from pandas import DataFrame
-
+import findingLocalVenues as flv
 from functools import partial
 import venue as v
+from historyApiData import obtainHistoryData
+from liveApiData import obtainLiveData
+from venue import venueInfo
 
 
 # /////// GUI SETUP ////////
 # create window
-from venue import venueInfo
-
 root = tk.Tk()
 canvas1 = tk.Canvas(root, width=1200, height=900, relief='raised')
 canvas1.pack()
@@ -27,7 +26,7 @@ canvas1.pack()
 # title
 label1 = tk.Label(root, text='Covid Activity Planner')
 label1.config(font=('helvetica', 40))
-canvas1.create_window(400, 50, window=label1)
+canvas1.create_window(500, 50, window=label1)
 
 # select mode radio buttons
 mode = tk.IntVar() # 1 = Go As Soon as Possible and 2 = Go later on
@@ -158,6 +157,9 @@ def modeButtonClicked():
         canvas1.create_window(1100, 120, window=button2)
 
 
+venue_name = ''
+city_name = ''
+venues = []
 # function that is executed once the 'Get Safest Time' button is clicked
 def buttonClicked():
 
@@ -167,34 +169,36 @@ def buttonClicked():
     base.basicInfo(venue_name, city_name)
 
     print('clicked on button')
-    print(base.name)
-    print(base.city)
 
+    establishment_01 = v.venueInfo()
+    establishment_02 = v.venueInfo()
+    establishment_03 = v.venueInfo()
+    establishment_04 = v.venueInfo()
+
+    venues.append(establishment_01)
+    venues.append(establishment_02)
+    venues.append(establishment_03)
+    venues.append(establishment_04)
+
+    flv.getLocations(venues, venue_name, city_name)
+
+    # /////// Venue Live Data ////////
+    for venue in venues:
+        obtainLiveData(venue)
+
+    for venue in venues:
+        print(venue.currentVenueStatus)
 
     # /////// Venue History ////////
-    url = "https://besttime.app/api/v1/forecasts"
+    for venue in venues:
+        obtainHistoryData(venue)
 
-    params = {
-        'api_key_private': con.BestTimeInfo.Api_Key_Private,
-        'venue_name': con.venueInfo.venueName,
-        'venue_address': con.venueInfo.venueAddress
-    }
-
-    response = requests.request("POST", url, params=params)
-    data = json.loads(response.text)
-
-    venueHistory1 = venueInfo()
-    venueHistory1.addHistorical(data)
-    venueHistory1.getRawDayData("Monday")
-
-    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 0, 'Loblaws 1', '200 Earl Grey Dr, Ottawa, ON K2T 1B6', 150, 8)
-    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 150, 'Loblaws 2', 'Wall street, ON K2T 1B6', 50, 6)
-    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 300, 'Loblaws 3', 'Area 51, Ottawa, ON K2T 1B6', 100, 13)
-    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 450, 'Loblaws 4', 'Joe Mama', 75, 23)
-
+    offset = 0
+    for venue in venues:
+        drawPlot(venue.getRawDayData("Monday"), offset, venue.name, venue.address, 150, 8)
+        offset += 150
 
 guiComponents = []
-
 def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
     barOffset = 600
     counter = 1
@@ -225,7 +229,7 @@ def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
         if (counter == time):
             rectangle = canvas1.create_rectangle(barOffset, graphOffset + 370, barOffset + 20,
                                                  graphOffset + 370 - rating, outline="#000", fill="#f00")
-            graphs.append(rectangle)
+            guiComponents.append(rectangle)
 
             lb = tk.Label(root, text=str(counter) + 'h')
             lb.config(font=('helvetica', 9))
@@ -243,7 +247,7 @@ def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
             colorString = '#' + greenValHex[-1] + redValHex[-1] + "0"
 
             rectangle = canvas1.create_rectangle(barOffset, graphOffset+370, barOffset+20, graphOffset+370-value,outline="#000", fill=colorString)
-            graphs.append(rectangle)
+            guiComponents.append(rectangle)
 
             lb = tk.Label(root, text=str(counter) + 'h')
             lb.config(font=('helvetica', 9))
