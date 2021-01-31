@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 from venue import venueInfo
 
 root = tk.Tk()
-canvas1 = tk.Canvas(root, width=1200, height=300, relief='raised')
+canvas1 = tk.Canvas(root, width=1200, height=900, relief='raised')
 canvas1.pack()
 
 # title
@@ -40,6 +40,9 @@ canvas1.create_window(72, 160, window=label2)
 entry2 = tk.Entry(root)
 canvas1.create_window(500, 160, window=entry2, width=550)
 
+# draw other gui lines and shapes
+canvas1.create_line(15, 100, 1180, 100)
+canvas1.create_line(15, 250, 1180, 250)
 
 # function that is executed once the 'Get Safest Visiting Times' button is clicked
 def buttonClicked():
@@ -64,60 +67,58 @@ def buttonClicked():
     venueHistory1.addHistorical(data)
     venueHistory1.getRawDayData("Monday")
 
-    drawPlot('Time', ['2', '4', '6', '8', '10', '12', '14'], 'Crowd', [15, 20, 21, 100, 200, 20, 20])
-    drawPlot('Time', ['2', '4', '6', '8', '10', '12', '14'], 'Crowd', [15, 20, 21, 100, 200, 20, 20])
-    drawPlot('Time', ['2', '4', '6', '8', '10', '12', '14'], 'Crowd', [15, 20, 21, 100, 200, 20, 20])
-    drawPlot('Time', ['2', '4', '6', '8', '10', '12', '14'], 'Crowd', [15, 20, 21, 100, 200, 20, 20])
-    drawPlot('Time', ['2', '4', '6', '8', '10', '12', '14'], 'Crowd', [15, 20, 21, 100, 200, 20, 20])
-
-    label3 = tk.Label(root, text='TEST LABEL')
-    label3.config(font=('helvetica', 12))
-    canvas1.create_window(20, 20, window=label3)
+    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 0, 'Loblaws 1', '200 Earl Grey Dr, Ottawa, ON K2T 1B6')
+    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 150, 'Loblaws 2', 'Wall street, ON K2T 1B6')
+    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 300, 'Loblaws 3', 'Area 51, Ottawa, ON K2T 1B6')
+    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 450, 'Loblaws 4', 'Joe Mama')
 
 
-fgs = None
+graphs = []
 
-def drawPlot(xName, xValues, yName, yValues):
-    # data1 = {
-    #     xName: xValues,
-    #     yName: yValues
-    # }
-    # df1 = DataFrame(data1, columns=[xName, yName])
-    # figure1 = plt.Figure(figsize=(5, 6), dpi=50)
-    # ax1 = figure1.add_subplot(111)
-    # bar1 = FigureCanvasTkAgg(figure1, root)
-    # bar1.get_tk_widget().pack(side=tk.LEFT, fill=tk.X)
-    # df1 = df1[[xName, yName]]
-    # df1.plot(kind='bar', legend=True, ax=ax1, fontsize=20)
-    # ax1.set_title('', fontsize=25)
+def drawPlot(crowdValues, graphOffset, venueName, venueAddress):
+    barOffset = 600
+    counter = 1
 
-    # fig = plt.figure()
-    # ax = fig.add_axes([0, 0, 1, 1])
-    # langs = ['C', 'C++', 'Java', 'Python', 'PHP']
-    # students = [23, 17, 35, 29, 12]
-    # ax.bar(langs, students)
-    # plt.show()
-    canvas1.create_rectangle(30, 10, 120, 80,
-                            outline="#fb0", fill="#fb0")
+    # draw venue name
+    lb = tk.Label(root, text=venueName)
+    lb.config(font=('helvetica', 20))
+    canvas1.create_window(100, graphOffset + 280, window=lb)
 
+    # draw venue address
+    lb = tk.Label(root, text='Address:  ')
+    lb.config(font=('helvetica', 12))
+    canvas1.create_window(70, graphOffset + 310, window=lb)
+    lb = tk.Label(root, text=venueAddress)
+    lb.config(font=('helvetica', 12))
+    canvas1.create_window(300, graphOffset + 310, window=lb)
 
+    # draw crowd bar graph
+    for value in crowdValues:
+        rectangle = canvas1.create_rectangle(barOffset, graphOffset+370, barOffset+20, graphOffset+370-value,outline="#000", fill="#9cf")
+        graphs.append(rectangle)
+
+        lb = tk.Label(root, text=str(counter) + 'h')
+        lb.config(font=('helvetica', 9))
+        canvas1.create_window(barOffset+10, graphOffset+390, window=lb)
+
+        barOffset += 25
+        counter += 1
 
 def removePlots():
-    print('remove plots')
-    plt.close()
-    plt.close('all')
+    for bar in graphs:
+        canvas1.delete(bar)
 
 
 
 # 'Get Safest Visiting Times' button
-button1 = tk.Button(text='Get Safest Visiting Times', command=buttonClicked, bg='brown', fg='white',
+button1 = tk.Button(text='Get Safest Visiting Times', command=buttonClicked, bg='green', fg='white',
                     font=('helvetica', 15, 'bold'))
-canvas1.create_window(400, 220, window=button1)
+canvas1.create_window(350, 220, window=button1)
 
 # 'Get Safest Visiting Times' button
-button1 = tk.Button(text='Remove Plots', command=removePlots, bg='brown', fg='white',
+button1 = tk.Button(text='Clear Data', command=removePlots, bg='red', fg='white',
                     font=('helvetica', 15, 'bold'))
-canvas1.create_window(500, 250, window=button1)
+canvas1.create_window(550, 220, window=button1)
 
 # enable the GUI main loop
 root.mainloop()
