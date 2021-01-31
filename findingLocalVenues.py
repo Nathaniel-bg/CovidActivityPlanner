@@ -14,26 +14,21 @@ def getLocations():
     options.add_argument("--window-size=1920,1200")
     driver = webdriver.Chrome(options=options, executable_path=DRIVER_PATH)
 
-    driver.get('https://www.google.com/maps/search/loblaws+toronto/')
-    time.sleep(0.2)
-    #response = rq.get('https://www.google.com/maps/search/loblaws+toronto/')
-    #response = rq.get('https://realpython.com/python-requests/')
+    driver.get('https://www.google.com/maps/search/loblaws+ottawa/')
 
-    soup = bs(driver.page_source,'html.parser')
+    name = None
+    while name == None:
+        soup = bs(driver.page_source,'html.parser')
 
-    #addresses = soup.find_all('span')
-    addresses = soup.find_all("div",{"class" : "section-result-content"})
-    #location = addresses.find_next('span','class=section-result-location)
-    #ye = addresses.find_next('span','jsan:"7.section-result-location')
+        addresses = soup.find_all("div",{"class" : "section-result-content"})
 
-    for i in addresses:
-        name = str(i.find_next("span", {"jstcache": "130"}))
-        loc = i.find_all("span", {"class": "section-result-location"})
-        locList = []
-        for j in loc:
-            locList.append(j)
-        print(name, locList)
-
+        for i in addresses:
+            name = str(i.find_next("span", {"jstcache": "130"}))
+            loc = i.find_all("span", {"class": "section-result-location"})
+            locList = []
+            for j in loc:
+                locList.append(j)
+            print(name, locList)
 
 
 getLocations()
