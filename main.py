@@ -73,15 +73,15 @@ def buttonClicked():
     venueHistory1.addHistorical(data)
     venueHistory1.getRawDayData("Monday")
 
-    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 0, 'Loblaws 1', '200 Earl Grey Dr, Ottawa, ON K2T 1B6')
-    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 150, 'Loblaws 2', 'Wall street, ON K2T 1B6')
-    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 300, 'Loblaws 3', 'Area 51, Ottawa, ON K2T 1B6')
-    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 450, 'Loblaws 4', 'Joe Mama')
+    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 0, 'Loblaws 1', '200 Earl Grey Dr, Ottawa, ON K2T 1B6', 150, 8)
+    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 150, 'Loblaws 2', 'Wall street, ON K2T 1B6', 50, 6)
+    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 300, 'Loblaws 3', 'Area 51, Ottawa, ON K2T 1B6', 100, 13)
+    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 450, 'Loblaws 4', 'Joe Mama', 75, 23)
 
 
 graphs = []
 
-def drawPlot(crowdValues, graphOffset, venueName, venueAddress):
+def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
     barOffset = 600
     counter = 1
 
@@ -98,17 +98,34 @@ def drawPlot(crowdValues, graphOffset, venueName, venueAddress):
     lb.config(font=('helvetica', 12))
     canvas1.create_window(300, graphOffset + 310, window=lb)
 
+    lb = tk.Label(root, text='live Rating: ' + str(rating), fg = 'red')
+    lb.config(font=('helvetica', 12))
+    canvas1.create_window(625, graphOffset + 280, window=lb)
+
     # draw crowd bar graph
     for value in crowdValues:
-        rectangle = canvas1.create_rectangle(barOffset, graphOffset+370, barOffset+20, graphOffset+370-value,outline="#000", fill="#9cf")
-        graphs.append(rectangle)
+        if (counter == time):
+            rectangle = canvas1.create_rectangle(barOffset, graphOffset + 370, barOffset + 20,
+                                                 graphOffset + 370 - rating, outline="#000", fill="#f00")
+            graphs.append(rectangle)
 
-        lb = tk.Label(root, text=str(counter) + 'h')
-        lb.config(font=('helvetica', 9))
-        canvas1.create_window(barOffset+10, graphOffset+390, window=lb)
+            lb = tk.Label(root, text=str(counter) + 'h')
+            lb.config(font=('helvetica', 9))
+            canvas1.create_window(barOffset + 10, graphOffset + 390, window=lb)
 
-        barOffset += 25
-        counter += 1
+            barOffset += 25
+            counter += 1
+
+        else:
+            rectangle = canvas1.create_rectangle(barOffset, graphOffset+370, barOffset+20, graphOffset+370-value,outline="#000", fill="#9cf")
+            graphs.append(rectangle)
+
+            lb = tk.Label(root, text=str(counter) + 'h')
+            lb.config(font=('helvetica', 9))
+            canvas1.create_window(barOffset+10, graphOffset+390, window=lb)
+
+            barOffset += 25
+            counter += 1
 
 def removePlots():
     for bar in graphs:

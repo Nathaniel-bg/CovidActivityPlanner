@@ -36,4 +36,3 @@ class venueInfo:
             return self.historyData['analysis'][5]['day_raw']
         elif (day == 'Sunday'):
             return self.historyData['analysis'][6]['day_raw']
-
