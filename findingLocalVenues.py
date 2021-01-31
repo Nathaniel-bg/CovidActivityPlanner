@@ -16,15 +16,11 @@ def getLocations():
 
     driver.get('https://www.google.com/maps/search/loblaws+toronto/')
     time.sleep(0.2)
-    #response = rq.get('https://www.google.com/maps/search/loblaws+toronto/')
-    #response = rq.get('https://realpython.com/python-requests/')
 
     soup = bs(driver.page_source,'html.parser')
 
-    #addresses = soup.find_all('span')
     addresses = soup.find_all("div",{"class" : "section-result-content"})
-    #location = addresses.find_next('span','class=section-result-location)
-    #ye = addresses.find_next('span','jsan:"7.section-result-location')
+
 
     for i in addresses:
         name = str(i.find_next("span", {"jstcache": "130"}))
