@@ -9,8 +9,8 @@ import TestConstants as con
 import tkinter as tk
 from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from pandas import DataFrame
+# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+# from pandas import DataFrame
 
 
 # /////// GUI SETUP ////////
@@ -69,30 +69,55 @@ def buttonClicked():
     drawPlot('Time', ['2', '4', '6', '8', '10', '12', '14'], 'Crowd', [15, 20, 21, 100, 200, 20, 20])
     drawPlot('Time', ['2', '4', '6', '8', '10', '12', '14'], 'Crowd', [15, 20, 21, 100, 200, 20, 20])
     drawPlot('Time', ['2', '4', '6', '8', '10', '12', '14'], 'Crowd', [15, 20, 21, 100, 200, 20, 20])
-    label3 = tk.Label(root, text='Enter your current address:')
-    label3.config(font=('helvetica', 12))
-    canvas1.create_window(1, 1, window=label3)
 
+    label3 = tk.Label(root, text='TEST LABEL')
+    label3.config(font=('helvetica', 12))
+    canvas1.create_window(20, 20, window=label3)
+
+
+fgs = None
 
 def drawPlot(xName, xValues, yName, yValues):
-    data1 = {
-        xName: xValues,
-        yName: yValues
-    }
-    df1 = DataFrame(data1, columns=[xName, yName])
-    figure1 = plt.Figure(figsize=(5, 6), dpi=50)
-    ax1 = figure1.add_subplot(111)
-    bar1 = FigureCanvasTkAgg(figure1, root)
-    bar1.get_tk_widget().pack(side=tk.LEFT, fill=tk.X)
-    df1 = df1[[xName, yName]]
-    df1.plot(kind='bar', legend=True, ax=ax1, fontsize=20)
-    ax1.set_title('', fontsize=25)
+    # data1 = {
+    #     xName: xValues,
+    #     yName: yValues
+    # }
+    # df1 = DataFrame(data1, columns=[xName, yName])
+    # figure1 = plt.Figure(figsize=(5, 6), dpi=50)
+    # ax1 = figure1.add_subplot(111)
+    # bar1 = FigureCanvasTkAgg(figure1, root)
+    # bar1.get_tk_widget().pack(side=tk.LEFT, fill=tk.X)
+    # df1 = df1[[xName, yName]]
+    # df1.plot(kind='bar', legend=True, ax=ax1, fontsize=20)
+    # ax1.set_title('', fontsize=25)
+
+    # fig = plt.figure()
+    # ax = fig.add_axes([0, 0, 1, 1])
+    # langs = ['C', 'C++', 'Java', 'Python', 'PHP']
+    # students = [23, 17, 35, 29, 12]
+    # ax.bar(langs, students)
+    # plt.show()
+    canvas1.create_rectangle(30, 10, 120, 80,
+                            outline="#fb0", fill="#fb0")
+
+
+
+def removePlots():
+    print('remove plots')
+    plt.close()
+    plt.close('all')
+
 
 
 # 'Get Safest Visiting Times' button
 button1 = tk.Button(text='Get Safest Visiting Times', command=buttonClicked, bg='brown', fg='white',
                     font=('helvetica', 15, 'bold'))
 canvas1.create_window(400, 220, window=button1)
+
+# 'Get Safest Visiting Times' button
+button1 = tk.Button(text='Remove Plots', command=removePlots, bg='brown', fg='white',
+                    font=('helvetica', 15, 'bold'))
+canvas1.create_window(500, 250, window=button1)
 
 # enable the GUI main loop
 root.mainloop()
