@@ -1,10 +1,9 @@
-#Imports
+# Imports
 from bs4 import BeautifulSoup as bs
-import requests as rq
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import os
-import time
+
 
 def getLocations():
     DRIVER_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),'chromedriver.exe')
