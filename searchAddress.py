@@ -14,7 +14,7 @@ def userInput():
 
 # _______________________TEST_HERE___________________________
 def test(estaList):
-    test = flv.getLocations(estaList,'Loblaws', 'toronto')
+    test = flv.getLocations(estaList,'Canadian tire', 'east toronto')
 
 establishment_01 = venue.venueInfo()
 establishment_02 = venue.venueInfo()
