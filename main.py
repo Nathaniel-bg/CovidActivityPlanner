@@ -73,15 +73,27 @@ canvas1.create_line(15, 100, 1180, 100)
 canvas1.create_line(15, 250, 1180, 250)
 # canvas1.create_line(15, 350, 1180, 350)
 
+day = ""
+earliest = ""
+latest = ""
+
 d = tk.IntVar() # variable to store radio button day selection
 def dayButtonClicked():
     print('day button clicked')
     print(str(d.get()))
+    global day
+    day = str(d.get())
 
 def hoursButtonClicked(e1, e2):
     print('hours button clicked')
     print(e1.get())
     print(e2.get())
+
+    global earliest
+    global latest
+
+    earliest = str(e1.get())
+    latest = str(e2.get())
 
 additionalComponents = []
 def modeButtonClicked():
@@ -163,6 +175,8 @@ def modeButtonClicked():
 venue_name = ''
 city_name = ''
 venues = []
+crowds = []
+
 # function that is executed once the 'Get Safest Time' button is clicked
 def buttonClicked():
     venue_name = entry2.get()
@@ -211,11 +225,20 @@ def buttonClicked():
     except:
         pass
 
+
+    if(mode.get() == 0 or mode.get() == 1):
+        drawSimpleModeRatings()
+    else:
+        drawRangeModeRatings()
+
 guiComponents = []
+ratings = []
+
 def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
     barOffset = 600
     # graphOffset = graphOffset + 120
     counter = 1
+
 
     elems = []
     for x in range(5):
@@ -223,6 +246,8 @@ def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
 
     for x in range(5):
         crowdValues.insert(0, elems.pop())
+
+    crowds.append(crowdValues)
 
     # draw venue name
     lb = tk.Label(root, text=venueName)
@@ -241,10 +266,14 @@ def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
     canvas1.create_window(300, graphOffset + 310, window=lb)
 
     if(rating != None):
-        lb = tk.Label(root, text='live Rating: ' + str(rating), fg = 'blue')
-        lb.config(font=('helvetica', 12))
-        guiComponents.append(lb)
-        canvas1.create_window(625, graphOffset + 280, window=lb)
+        if(mode.get() != 2):
+            lb = tk.Label(root, text='live Rating: ' + str(rating), fg = 'blue')
+            lb.config(font=('helvetica', 12))
+            guiComponents.append(lb)
+            canvas1.create_window(625, graphOffset + 280, window=lb)
+        ratings.append(rating)
+    else:
+        ratings.append(999)
 
     # draw crowd bar graph
     for value in crowdValues:
@@ -264,20 +293,115 @@ def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
         guiComponents.append(lb)
         canvas1.create_window(barOffset+10, graphOffset+390, window=lb)
 
-        # draw blue live data bar
+        # draw no live data
         if (counter == time):
             if (rating == None):
-                lb = tk.Label(root, text='No Live data', fg = 'blue')
-                lb.config(font=('helvetica', 10))
-                guiComponents.append(lb)
-                canvas1.create_window(625, graphOffset + 280, window=lb)
+                if (mode.get() != 2):
+                    lb = tk.Label(root, text='No Live data', fg = 'blue')
+                    lb.config(font=('helvetica', 10))
+                    guiComponents.append(lb)
+                    canvas1.create_window(625, graphOffset + 280, window=lb)
             else:
-                rectangle = canvas1.create_rectangle(barOffset, graphOffset + 370, barOffset + 20,
-                                                     graphOffset + 370 - rating, outline="#000", fill="#00f")
-                guiComponents.append(rectangle)
+                if (mode.get() != 2):
+                    rectangle = canvas1.create_rectangle(barOffset, graphOffset + 370, barOffset + 20,
+                                                         graphOffset + 370 - rating, outline="#000", fill="#00f")
+                    guiComponents.append(rectangle)
 
         barOffset += 25
         counter += 1
+
+
+def drawSimpleModeRatings():
+    if(ratings != []):
+        # draw recommended label based on ratings
+        min_value = min(ratings)
+        # case 1, there is only 1 minimum rating
+        if (ratings.count(min_value) == 1):
+            index = ratings.index(min(ratings))
+
+            lb = tk.Label(root, text='Recommended', fg='green')
+            lb.config(font=('helvetica', 12))
+            guiComponents.append(lb)
+            canvas1.create_window(625, 600 + index * 150, window=lb)
+
+        # case 2, there are multiple minimum ratings
+        else:
+            k = 0
+            for rate in ratings:
+                if rate == min_value:
+                    lb = tk.Label(root, text='Recommended', fg='green')
+                    lb.config(font=('helvetica', 12))
+                    guiComponents.append(lb)
+                    canvas1.create_window(625, 300 + (k * 150), window=lb)
+                k += 1
+
+def drawRangeModeRatings():
+    print("In draw range")
+    global earliest
+    global latest
+    global day
+
+    print(earliest)
+    print(latest)
+    print(day)
+
+    dayString = ""
+    if(day == 0):
+        dayString = 'Monday'
+    elif(day == 1):
+        dayString = 'Tuesday'
+    elif (day == 2):
+        dayString = 'Wednesday'
+    elif (day == 3):
+        dayString = 'Thursday'
+    elif (day == 4):
+        dayString = 'Friday'
+    elif (day == 5):
+        dayString = 'Saturday'
+    elif (day == 6):
+        dayString = 'Sunday'
+
+    # for venue in venues:
+    #     print("values:")
+    #     print(venue.getRawDayData(dayString))
+
+    minimums = []
+
+    for crowd in crowds:
+        print(crowd)
+
+
+        tmp = crowd[int(earliest):int(latest)]
+        tmp2 = list(filter(lambda num: num != 0, tmp))
+
+        minVal = min(tmp2)
+        minimums.append(minVal)
+
+        print(minimums)
+
+
+    # draw recommended label based on ratings
+    min_value = min(minimums)
+    # case 1, there is only 1 minimum rating
+    if (minimums.count(min_value) == 1):
+        index = minimums.index(min(minimums))
+
+        lb = tk.Label(root, text='Recommended', fg='green')
+        lb.config(font=('helvetica', 12))
+        guiComponents.append(lb)
+        canvas1.create_window(625, 600 + index * 150, window=lb)
+
+    # case 2, there are multiple minimum ratings
+    else:
+        k = 0
+        print("Case 2")
+        for rate in minimums:
+            if rate == min_value:
+                lb = tk.Label(root, text='Recommended', fg='green')
+                lb.config(font=('helvetica', 12))
+                guiComponents.append(lb)
+                canvas1.create_window(625, 300 + (k * 150), window=lb)
+            k += 1
 
 
 def removePlots():
@@ -288,7 +412,11 @@ def removePlots():
             conponent.destroy()
 
     global venues
+    global ratings
+    global crowds
     venues = []
+    ratings = []
+    crowds = []
 
 # /////// Various Tkinter buttons ////////
 # 'Get Safest Times' button
