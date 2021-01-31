@@ -1,4 +1,4 @@
-# imports
+'''# imports
 import requests as rq
 import json
 import tkinter
@@ -28,3 +28,4 @@ print(estaList[0].name, estaList[0].address)
 print(estaList[1].name, estaList[1].address)
 print(estaList[2].name, estaList[2].address)
 print(estaList[3].name, estaList[3].address)
+'''
