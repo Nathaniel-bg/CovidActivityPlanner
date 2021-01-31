@@ -1,13 +1,11 @@
-# Processing API Data from https://besttime.app/
 
 import requests
 import json
 import TestConstants as con
 import venue as v
 
-def obtainLiveData(venue):
-    # Following URL gives a POST for ALL the JSON on the live forecast
-    url = "https://besttime.app/api/v1/forecasts/live"
+def obtainHistoryData(venue):
+    url = "https://besttime.app/api/v1/forecasts"
 
     # Parameters used to communicate with API
     params = {
@@ -19,17 +17,6 @@ def obtainLiveData(venue):
     response = requests.request("POST", url, params=params)
     data = json.loads(response.text)
 
-    print(data)
-
-    if(data['status'] != 'Error'):
+    if not (data['status'] == 'Error'):
         # venueInfo = v.venueInfo()
-        venue.addLive(data)
-
-
-
-
-
-
-
-
-
+        venue.addHistorical(data)

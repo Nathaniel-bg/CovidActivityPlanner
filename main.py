@@ -9,17 +9,18 @@ import TestConstants as con
 import tkinter as tk
 from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
-# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-# from pandas import DataFrame
-
+import findingLocalVenues as flv
 from functools import partial
 import venue as v
+from historyApiData import obtainHistoryData
+from liveApiData import obtainLiveData
+from venue import venueInfo
+from collections import deque
+import numpy
 
 
 # /////// GUI SETUP ////////
 # create window
-from venue import venueInfo
-
 root = tk.Tk()
 canvas1 = tk.Canvas(root, width=1200, height=900, relief='raised')
 canvas1.pack()
@@ -70,6 +71,7 @@ canvas1.create_window(500, 160, window=entry2, width=550)
 # draw other gui lines and shapes
 canvas1.create_line(15, 100, 1180, 100)
 canvas1.create_line(15, 250, 1180, 250)
+# canvas1.create_line(15, 350, 1180, 350)
 
 d = tk.IntVar() # variable to store radio button day selection
 def dayButtonClicked():
@@ -158,46 +160,69 @@ def modeButtonClicked():
         canvas1.create_window(1100, 120, window=button2)
 
 
+venue_name = ''
+city_name = ''
+venues = []
 # function that is executed once the 'Get Safest Time' button is clicked
 def buttonClicked():
-
     venue_name = entry2.get()
     city_name = entry1.get()
     base = v.venueInfo()
     base.basicInfo(venue_name, city_name)
 
     print('clicked on button')
-    print(base.name)
-    print(base.city)
 
+    establishment_01 = v.venueInfo()
+    establishment_02 = v.venueInfo()
+    establishment_03 = v.venueInfo()
+    establishment_04 = v.venueInfo()
+
+    venues.append(establishment_01)
+    venues.append(establishment_02)
+    venues.append(establishment_03)
+    venues.append(establishment_04)
+
+    flv.getLocations(venues, venue_name, city_name)
+
+    # /////// Venue Live Data ////////
+    for venue in venues:
+        obtainLiveData(venue)
+
+    # for venue in venues:
+    #     print("STATUS")
+    #     print(venue.currentVenueStatus)
 
     # /////// Venue History ////////
-    url = "https://besttime.app/api/v1/forecasts"
+    for venue in venues:
+        obtainHistoryData(venue)
 
-    params = {
-        'api_key_private': con.BestTimeInfo.Api_Key_Private,
-        'venue_name': con.venueInfo.venueName,
-        'venue_address': con.venueInfo.venueAddress
-    }
+    offset = 0
 
-    response = requests.request("POST", url, params=params)
-    data = json.loads(response.text)
+    try:
+        for venue in venues:
+            time = 0
+            if(venue.currentVenueTime.split()[2][-2] == 'A'):
+                time = int(venue.currentVenueTime.split()[2][:2])
+            else:
+                time = int(venue.currentVenueTime.split()[2][:2]) + 12
 
-    venueHistory1 = venueInfo()
-    venueHistory1.addHistorical(data)
-    venueHistory1.getRawDayData("Monday")
-
-    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 0, 'Loblaws 1', '200 Earl Grey Dr, Ottawa, ON K2T 1B6', 150, 8)
-    drawPlot([0,0,0,0,0,10,20,30,40,50,60,70,80,100,80,60,40,30,20,10,0,0,0,0], 150, 'Loblaws 2', 'Wall street, ON K2T 1B6', 50, 6)
-    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 300, 'Loblaws 3', 'Area 51, Ottawa, ON K2T 1B6', 100, 13)
-    drawPlot([0, 0, 0, 0, 0, 10, 20, 30, 40, 50, 60, 70, 80, 100, 80, 60, 40, 30, 20, 10, 0, 0, 0, 0], 450, 'Loblaws 4', 'Joe Mama', 75, 23)
-
+            drawPlot(venue.getRawDayData("Monday"), offset, venue.name, venue.address, venue.currentVenueStatus, time)
+            offset += 150
+    except:
+        pass
 
 guiComponents = []
-
 def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
     barOffset = 600
+    # graphOffset = graphOffset + 120
     counter = 1
+
+    elems = []
+    for x in range(5):
+        elems.append(crowdValues.pop())
+
+    for x in range(5):
+        crowdValues.insert(0, elems.pop())
 
     # draw venue name
     lb = tk.Label(root, text=venueName)
@@ -215,43 +240,45 @@ def drawPlot(crowdValues, graphOffset, venueName, venueAddress, rating, time):
     guiComponents.append(lb)
     canvas1.create_window(300, graphOffset + 310, window=lb)
 
-    lb = tk.Label(root, text='live Rating: ' + str(rating), fg = 'red')
-    lb.config(font=('helvetica', 12))
-    canvas1.create_window(625, graphOffset + 280, window=lb)
+    if(rating != None):
+        lb = tk.Label(root, text='live Rating: ' + str(rating), fg = 'blue')
+        lb.config(font=('helvetica', 12))
+        guiComponents.append(lb)
+        canvas1.create_window(625, graphOffset + 280, window=lb)
 
     # draw crowd bar graph
     for value in crowdValues:
 
+        # green and red bars
+        greenVal = int((value/100)*15)
+        redVal = int(15 - greenVal)
+        greenValHex = hex(greenVal)
+        redValHex = hex(redVal)
+        colorString = '#' + greenValHex[-1] + redValHex[-1] + "0"
+
+        rectangle = canvas1.create_rectangle(barOffset, graphOffset+370, barOffset+20, graphOffset+370-value,outline="#000", fill=colorString)
+        guiComponents.append(rectangle)
+
+        lb = tk.Label(root, text=str(counter) + 'h')
+        lb.config(font=('helvetica', 9))
+        guiComponents.append(lb)
+        canvas1.create_window(barOffset+10, graphOffset+390, window=lb)
+
+        # draw blue live data bar
         if (counter == time):
-            rectangle = canvas1.create_rectangle(barOffset, graphOffset + 370, barOffset + 20,
-                                                 graphOffset + 370 - rating, outline="#000", fill="#f00")
-            graphs.append(rectangle)
+            if (rating == None):
+                lb = tk.Label(root, text='No Live data', fg = 'blue')
+                lb.config(font=('helvetica', 10))
+                guiComponents.append(lb)
+                canvas1.create_window(625, graphOffset + 280, window=lb)
+            else:
+                rectangle = canvas1.create_rectangle(barOffset, graphOffset + 370, barOffset + 20,
+                                                     graphOffset + 370 - rating, outline="#000", fill="#00f")
+                guiComponents.append(rectangle)
 
-            lb = tk.Label(root, text=str(counter) + 'h')
-            lb.config(font=('helvetica', 9))
-            canvas1.create_window(barOffset + 10, graphOffset + 390, window=lb)
+        barOffset += 25
+        counter += 1
 
-            barOffset += 25
-            counter += 1
-
-        else:
-          
-            greenVal = int((value/100)*15)
-            redVal = int(15 - greenVal)
-            greenValHex = hex(greenVal)
-            redValHex = hex(redVal)
-            colorString = '#' + greenValHex[-1] + redValHex[-1] + "0"
-
-            rectangle = canvas1.create_rectangle(barOffset, graphOffset+370, barOffset+20, graphOffset+370-value,outline="#000", fill=colorString)
-            graphs.append(rectangle)
-
-            lb = tk.Label(root, text=str(counter) + 'h')
-            lb.config(font=('helvetica', 9))
-            canvas1.create_window(barOffset+10, graphOffset+390, window=lb)
-
-
-            barOffset += 25
-            counter += 1
 
 def removePlots():
     for conponent in guiComponents:
@@ -259,6 +286,9 @@ def removePlots():
             canvas1.delete(conponent)
         except:
             conponent.destroy()
+
+    global venues
+    venues = []
 
 # /////// Various Tkinter buttons ////////
 # 'Get Safest Times' button
@@ -277,5 +307,4 @@ button1 = tk.Button(text='Set Mode', command=modeButtonClicked, bg='grey', fg='w
 canvas1.create_window(1000, 50, window=button1)
 
 # enable the GUI main loop
-print("got here")
 root.mainloop()
