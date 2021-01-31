@@ -7,4 +7,4 @@ This application helps the user know which venue to go when going out during cov
 
 Once the application has computed the information, it will show the user the information gathered and will then recommend the user with the best location.
 
-![Alt Text](/images/covidPlannerPic.png)
+![CovidPlanner](/images/covidPlannerPic.png)
